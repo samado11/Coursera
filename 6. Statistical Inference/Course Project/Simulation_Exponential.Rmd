@@ -1,0 +1,54 @@
+---
+title: "Project#1_Simulation of Exponential"
+author: "Julian Jang"
+date: "October 21, 2015"
+output: html_document
+---
+Simulation of Exponential for Proof of CLT
+---
+### Overview
+#### I learned the CLT(Center Limit Theorem) from Video lectures. I wonder that all kinds of samples were showed to 'Normal Distribution'. So, I am going to simulate distribution of the Exponential variables and compare that with 'Normal Distribution'(Of course, this is the assignment of 'Statitstical Inference' Course on Coursera).
+
+### Simulations
+I extracted 1,000 numbers of averages of 40 exponentials through simulation. And, I computed the mean of the 1,000 numbers.
+
+```{r, echo = TRUE, message = FALSE}
+lambda <- 0.2
+
+Simul_rexp <- NULL
+for (i in 1:1000){Simul_rexp <- c(Simul_rexp, mean(rexp(40, lambda)))}
+
+Simul_mean <- mean(Simul_rexp)
+Theo_mean <- 1 / lambda
+```
+
+### Sample Mean versus Theoretical Mean
+I compared Sample Mean with Theoretical Mean. The result of the comparison is that they are very similar.
+
+```{r, echo = TRUE, message = FALSE}
+matrix(data = c(Simul_mean, Theo_mean), nrow = 1, ncol = 2, 
+       dimnames = list("Result", c("Mean of Simulations", "Theoretical Mean")))
+```
+
+### Sample Variance versus Theoretical Variance
+I compared Sample Variance with Theoretical Variance by same method in above.
+
+```{r, echo = TRUE, message = FALSE}
+Simul_var <- var(Simul_rexp)
+Theo_var <- 1 / lambda
+
+matrix(data = c(Simul_mean, Theo_mean), nrow = 1, ncol = 2, 
+       dimnames = list("Result", c("Variance of Simulations", "Theoretical Variance")))
+```
+
+### Distribution
+I saw the equality of the mean and variance between Simulation and Theory. But, I also compared graph of distribution between Simulation and Theory. The plot is below.
+
+```{r, echo=FALSE, message = FALSE}
+hist(Simul_rexp, main = "Histogram of Exponential Simulations and line of Normal Distribution")
+clt <- seq(0, 10, length = 1000)
+par(new = T)
+plot(clt, dnorm(clt, mean = Theo_mean, sd = sqrt(Theo_var)), 
+     xlab = "", ylab = "", type = "l", axes = F, col = "red")
+```
+
