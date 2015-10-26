@@ -1,0 +1,67 @@
+---
+title: "Analysis_Toothgrowth"
+author: "Julian Jang"
+date: "October 25, 2015"
+output: html_document
+---
+Analysis of Toothgrowth dataset
+---
+### Overview(Summary)
+#### The explanation of 'Toothgrowth' dataset is below. This dataset is a data show that the effect of Vitamin C on Tooth Growth in Guinea Pigs. The response is the length of odontoblasts (teeth) in each of 10 guinea pigs at each of three dose levels of Vitamin C (0.5, 1, and 2 mg) with each of two delivery methods (orange juice or ascorbic acid).
+ - len : numeric value for Tooth length
+ - supp : factor value for Supplement type (VC or OJ).
+ - dose : numeric value for Dose in milligrams.
+
+### Basic EDA
+I looked through the dataset with boxplots. I made boxplots to find out the difference of length through supplement methods and amount of dosage. The results are below. I glanced, I think that the difference existed in each control group.
+
+```{r, echo = TRUE}
+ToothGrowth$dose <- as.factor(ToothGrowth$dose)
+par(mfrow = c(2, 1))
+plot(len ~ supp, data = ToothGrowth, main = "Comparison between 'Orange Juice' and 'Vitamin C'")
+plot(len ~ dose, data = ToothGrowth, main = "Comparison of amount of dose")
+
+with(ToothGrowth, tapply(len, supp, mean))
+with(ToothGrowth, tapply(len, dose, mean))
+```
+
+### t test for groups which are divied accordingly supplement method.
+I divided the dataset into two parts-'VC' and 'OJ'. I used two external packages('tidyr', 'dplyr'). And, I t tested. The result of t test is that No difference between 'VC' and 'OJ'. The p-value is '0.06063'. So, I can't deny Null hypothesis because that my p-value is greater than 0.05 I can't deny Null hypothesis.
+
+```{r, echo = TRUE, message = FALSE}
+if (!require(tidyr)) { install.packages("tidyr") }
+if (!require(dplyr)) { install.packages("dplyr") }
+
+Supp.df <- ToothGrowth %>% select(supp, len) %>% spread(supp, len)
+with(Supp.df, t.test(VC, OJ))
+```
+
+### t test for comparison among the amount of dose.
+I executed t.test to compare difference of length by amount of dose in same way. I tested 3 times for 3 groups. In summary, The length was different according to amount of dose. '0.5 & 1.0', '0.5 & 2.0' and '1.0 & 2.0' were all different in mean value. The results of t tests are below.
+
+```{r, echo = TRUE, message = FALSE}
+Dose.df <- ToothGrowth %>% select(dose, len) %>% spread(dose, len)
+names(Dose.df) <- c("a_0.5", "a_1", "a_2")
+
+Dose.t_1 <- with(Dose.df, t.test(a_0.5, a_1))
+Dose.t_1$p.value
+Dose.t_1$conf.int
+
+Dose.t_2 <- with(Dose.df, t.test(a_0.5, a_2))
+Dose.t_2$p.value
+Dose.t_2$conf.int
+
+Dose.t_3 <- with(Dose.df, t.test(a_1, a_2))
+Dose.t_3$p.value
+Dose.t_3$conf.int
+```
+
+### Conclusion
+ - Null Hypothesis: The length of tooth will have no diffrence according to dose method and amount of Vitamin C.
+ - Alternative Hypothesis: The length of tooth will diffrent according to dose method and amount of Vitamin C.
+
+The result of test.
+
+ - No difference on dose methods.
+ - Amount of dose causes difference of length of tooth.
+
