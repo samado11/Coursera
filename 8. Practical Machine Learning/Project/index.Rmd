@@ -1,0 +1,133 @@
+---
+title: "Practical Machine Learning Course Project"
+author: "Julian Jang"
+date: "December 23, 2015"
+output: html_document
+---
+### Introduction
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it.
+The goal of this project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set.
+
+### Summary
+We had to predict some variable named 'classe' with other all personal activity datas. So, I have analyzed through below steps.
+
+1. Data Loading & EDA - I have removed NA columns
+2. PreProcessing - I did PCA for reduction of variables
+3. Choice of proper Model - I have tested three models with data slicing method
+4. Modeling and Prediction - I have made the model which I've choosen on step 3 and I have applied it to test dataset
+
+### Loading the Data
+I have importing train and test dataset from csv files. And, I have discovered NA columns in test dataset. Then I removed the NA columns in test dataset. I also removed the same NA columns of train dataset because these NA columns cannot affect the process of prediction although these NA columns don't have NA values in train dataset.
+
+```{r, warning = FALSE, message = FALSE, cache = TRUE}
+# Importing the Data
+raw.train <- read.csv("pml-training.csv", stringsAsFactors = F)
+raw.test <- read.csv("pml-testing.csv", stringsAsFactors = F)
+raw.train$classe <- factor(raw.train$classe)
+
+# Extrating columns containing the NA value in test data set
+nacolumn.test <- NULL
+for (i in 1:dim(raw.test)[2]) {
+    if (sum(!is.na(raw.test[, i])) == 0) {
+        nacolumn.test <- c(nacolumn.test, colnames(raw.test)[i])
+    }
+}
+# Removing columns that have same names with extracted columns above
+# Cleaming the data frame
+exclu.column <- c(nacolumn.test, "X", "user_name", "cvtd_timestamp", "raw_timestamp_part_1", 
+                  "raw_timestamp_part_2", "new_window")
+df.train <- raw.train[!names(raw.train) %in% exclu.column]
+```
+
+### EDA
+I saw the distributions of all columns in train dataset. I discovered that they had many outliers. So, I had to process these outliers properly due to avoiding the over-fitting. I have replaced outliers to median value of each columns.
+
+```{r, warning = FALSE, message = FALSE, eval = FALSE}
+# EDA
+boxplot(df.train[, 1:10])
+boxplot(df.train[, 11:20])
+boxplot(df.train[, 21:30])
+boxplot(df.train[, 31:40])
+boxplot(df.train[, 41:53])
+
+# Replacing outliers to median value for avoiding over-fitting
+for (i in 1:(dim(df.train)[2] - 1)) {
+    df.train[df.train[, i] %in% boxplot.stats(df.train[, i])$out, i] <- median(df.train[, i])
+}
+```
+
+### Preprocessing
+I did PCA method for reduction of columns. And I have extracted 8 components that had 90% coverages of variables.
+
+```{r, warning = FALSE, message = FALSE}
+# Creating partition of training dataset for validation of the model
+if (!require(caret)) { install.packages("caret") }
+inTrain <- createDataPartition(df.train$classe, p= 0.7, list = F)
+training <- df.train[inTrain, ]
+validating <- df.train[-inTrain, ]
+# Preprocessing with PCA
+x.comp <- prcomp(training[, -54])
+summary(x.comp)
+
+# I choose eight priciple component(about 90% propotion)
+preProc <- preProcess(training[, -54], method = "pca", pcaComp = 8)
+trainPC <- predict(preProc, training[, -54]); trainPC <- cbind(trainPC, training$classe)
+validPC <- predict(preProc, validating[, -54]); validPC <- cbind(validPC, validating$classe)
+names(trainPC)[9] <- "classe"; names(validPC)[9] <- "classe" 
+```
+
+### Choice of proper Model
+I have tested three models(Random Forest, Linear Discriminant Analysis, Naive Bayes) with data slicing method. The result of that the 'Random Forest' showed the best result. The 'Random Forest' show the accuracy of valid dataset is about 92% and the error rate of valid dataset is about 8%.
+
+```{r, warning = FALSE, message = FALSE, cache = TRUE}
+# choosing the best model
+if (!require(doParallel)) { install.packages("doParallel") }
+registerDoParallel(cores = 4)
+
+resultModel <- data.frame(model = NULL, 
+                          traindata_accuracy = NULL, 
+                          traindata_error_rate = NULL, 
+                          validdata_accuracy = NULL, 
+                          validdata_error_rate = NULL)
+applyModel <- c("rf", "lda", "nb")
+for (m in applyModel) {
+    model <- train(classe ~ ., method = m, data = trainPC)
+    trainout <- confusionMatrix(predict(model, newdata = trainPC), trainPC$classe)
+    testout <- confusionMatrix(predict(model, newdata = validPC), validPC$classe)
+    tmp <- data.frame(model = m, 
+                      traindata_accuracy = trainout$overall[1], 
+                      traindata_error_rate = 1 - trainout$overall[1], 
+                      validdata_accuracy = testout$overall[1], 
+                      validdata_error_rate = 1 - testout$overall[1])
+    resultModel <- rbind(resultModel, tmp)
+}
+print(resultModel)
+```
+
+### Model selection and Prediction of Test dataset
+I have predicted the 'classe' of the personal activity in test dataset through my machine learning model. The results are below. And, the confusion matrix of my model is in the last section 'Appendix'.
+
+```{r, warning = FALSE, message = FALSE, cache = TRUE}
+# The RandomForest Algorithm is best, So I have choosen the RF
+total_train.df <- rbind(trainPC, validPC)
+fit <- train(classe ~., method = "rf", data = total_train.df)
+
+# To predict of class of the test dataset
+df.test <- raw.test[!names(raw.test) %in% exclu.column]
+for (i in 1:(dim(df.test)[2])) {
+    df.test[df.test[, i] %in% boxplot.stats(df.test[, i])$out, i] <- median(df.test[, i])
+}
+
+testPC <- predict(preProc, df.test[, -54])
+df.test <- cbind(df.test, predict(fit, newdata = testPC))
+names(df.test)[55] <- "classe_predicted"
+print(df.test[, c("problem_id", "classe_predicted")])
+```
+
+### Appendix
+This is the confusion matrix of my Random Forest model with train dataset. The Accuracy in confusion matrix is 100% but the outcome of test dataset(20s problems) is about 85%. I think my model might be over-fitted to the train dataset.
+
+```{r, warning = FALSE, message = FALSE}
+confusionMatrix(predict(fit, newdata = total_train.df), total_train.df$classe)
+```
