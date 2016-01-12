@@ -1,2 +1,2 @@
 # Coursera
-This section is collections of my coursera study work
+This section is collections of my coursera study works.
