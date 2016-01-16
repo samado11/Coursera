@@ -23,4 +23,4 @@ pollutantmean <- function(directory, pollutant, id=1:332){
   else{
     print("unvalid directory name")
   }
-}
+} 

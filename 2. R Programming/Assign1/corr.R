@@ -21,4 +21,4 @@ corr <- function(directory, th=NULL){
     else{
       print("Invalid direcotry name")
     }  
-}
+} 
