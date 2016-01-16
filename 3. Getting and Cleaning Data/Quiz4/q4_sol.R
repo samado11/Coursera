@@ -1,4 +1,4 @@
-## Quiz 4.
+## Quiz 4. 
 # Problem 1.
 data <- read.csv("./data/microdata.csv")
 names(data)[123]

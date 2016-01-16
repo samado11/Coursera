@@ -2,7 +2,7 @@
 url <- "https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip"
 download.file(url, destfile = "dataset.zip", method = "curl")
 unzip("./dataset.zip", exdir = "./")
-
+ 
 # Import Data files in created folder into R.
 features <- read.table("./UCI HAR Dataset/features.txt")
 activity_labels <- read.table("./UCI HAR Dataset/activity_labels.txt")
