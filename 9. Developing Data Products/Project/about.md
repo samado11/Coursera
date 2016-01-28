@@ -24,4 +24,4 @@
 * Balanced Accuracy = (Sensitivity+Specificity)/2
 
 
-*quoted from the package 'caret' [home page](http://topepo.github.io/caret/other.html). And, the source codes are [here](https://github.com/tansansu).*
+*quoted from the package 'caret' [home page](http://topepo.github.io/caret/other.html). And, the source codes are [here](https://github.com/tansansu/Coursera/tree/master/9.%20Developing%20Data%20Products/Project).*
