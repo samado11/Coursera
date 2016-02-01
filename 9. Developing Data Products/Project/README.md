@@ -1,5 +1,5 @@
 ### Project Assignment of Devloping Data Products in Coursera
-Follow is the instruction of the Coursera assignment I have to do.
+###### *Follow is the instruction of the Coursera assignment I have to do.*
 
 #### Instructions
 
